@@ -2,21 +2,28 @@ const express =require("express");
 
 const app=express();
 
-app.use("/hello",(req,res)=>{
-    res.send("hello hello hello hello");
-});
+app.get("/user",
+    (req,res,next)=>{
+        console.log("handling the 1 route user!");
+   res.send("1st response");
+    next();
+},
 
-app.get("/user",(req,res)=>{
-    res.send({firstName : "Abhishek",lastName : "kumar",email: "abc@gmail.com"});
-});
-
-app.post("/user",(req,res)=>{
-    res.send("successfully saved the data!");
-});
-
-app.delete("/user",(req,res)=>{
-    res.send("successfully deleted the data!");
-});
+(req,res,next)=>{
+    console.log("handling the 2 route user!");
+    res.send("2nd response");
+    next();
+},
+(req,res,next)=>{
+    console.log("handling the 3 route user!");
+    res.send("3nd response");
+    next();
+},
+(req,res)=>{
+    console.log("handling the 4 route user!");
+    res.send("4nd response");
+}
+);
 
 
 app.listen(3000,()=>{
