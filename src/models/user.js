@@ -1,20 +1,34 @@
 import { Schema, model } from "mongoose";
+import validator from "validator";
 
 const userSchema = new Schema({
   firstName: {
     type: String,
-    required :true
+    required :true,
+    minLength:4,
+    maxLength:50,
   },
   lastName: {
     type: String
   },
   emailId: {
     type: String,
-    required :true,
-    unique :true
+    lowerCase: true,
+    required: true,
+    unique: true,
+    validate(value) {
+      if (!validator.isEmail(value)) {
+         throw new Error("invalid email address: " + value);
+      }
+    },
   },
   password: {
-    type: String 
+    type: String,
+    validate(value) {
+      if (!validator.isStrongPassword(value)) {
+         throw new Error("Enter a strong password: " + value);
+      }
+    },
   },
   age: {
     type: Number
