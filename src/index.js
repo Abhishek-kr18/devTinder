@@ -6,16 +6,19 @@ import { connectDB } from "./config/database.js";
 import cookieParser from "cookie-parser";
 
 
+
 app.use(express.json()); 
 app.use(cookieParser());
 
 import authRouter from "./routes/auth.js";
 import profileRouter from "./routes/profile.js";
 import requestRouter from "./routes/requests.js";
+import userRouter from "./routes/user.js";
 
 app.use("/",authRouter);
 app.use("/",profileRouter);
 app.use("/",requestRouter);
+app.use("/",userRouter);
 
 
 connectDB()

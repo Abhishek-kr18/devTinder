@@ -8,7 +8,7 @@ const requestRouter = express.Router();
 requestRouter.post(
   "/request/sent/:status/:toUserId",
    auth.userAuth, 
-   async (req, res) => {
+   async (req, res, next) => {
     try{
       const fromUserId = req.user._id;
       const toUserId = req.params.toUserId;
@@ -50,9 +50,46 @@ requestRouter.post(
         data,
       });
     }catch(err){
-      res.status(400).send("Error: " + err.message);
+      next(err);
     }
  }
+);
+
+requestRouter.post(
+  "/request/review/status/:requestId",
+   auth.userAuth,
+    async (req, res, next) => {
+    try{
+    const loggedInUser = req.user;
+    const {status,requestId} = req.params;
+
+    const allowedStatus = ["accepted", "rejected"];
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).json({ message: "status not allowed" });
+    }
+    const connectionRequest = await ConnectionRequest.findById({
+       _id: requestId,
+       toUserId: loggedInUser._id,
+       status: "interested",
+    });
+
+    if (!connectionRequest) {
+      return res
+      .status(404)
+      .json({ message: "Connection request not found" });
+    }
+
+    connectionRequest.status = status;
+
+    const data=await connectionRequest.save();
+
+    res.json({message: loggedInUser.firstName + " has " + status + " the connection request",
+      data,
+    });
+    }catch(err){
+      next(err);
+    }
+  }
 );
 
 export default requestRouter;

@@ -45,7 +45,7 @@ authRouter.post("/login", async (req, res) => {
 
     const token = jwt.sign({ _id: user._id }, "Dev@Tinder$284");
     res.cookie("token", token, { httpOnly: true, secure: false });
-    res.send("login successful!!!");
+    res.json({ message: "login successful!!!", token });
   } catch (err) {
     res.status(400).send("something went wrong: " + err.message);
   }

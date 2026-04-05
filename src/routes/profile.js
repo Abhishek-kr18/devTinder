@@ -1,10 +1,11 @@
-import express from "express";
-import auth from "../middlewares/auth.js";
 
-const profileRouter = express.Router();
+import express from "express";
+import { userAuth } from "../middlewares/auth.js";
 import { validateEditProfileData } from "../utils/validations.js";
 
-profileRouter.get("/profile", auth.userAuth, async (req, res) => {
+const profileRouter = express.Router();
+
+profileRouter.get("/profile", userAuth, async (req, res) => {
   try {
     const user = req.user;
     res.send(user);
@@ -13,7 +14,7 @@ profileRouter.get("/profile", auth.userAuth, async (req, res) => {
   }
 });
 
-profileRouter.patch("/profile", auth.userAuth, async (req, res) => {
+profileRouter.patch("/profile", userAuth, async (req, res) => {
     try{
         if(!validateEditProfileData(req)){
             throw new Error("invalid edit fields!");
