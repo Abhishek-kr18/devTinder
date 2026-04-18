@@ -4,9 +4,10 @@ import express from "express";
 const app=express();
 import { connectDB } from "./config/database.js";
 import cookieParser from "cookie-parser";
+import cors from "./config/cors.js";
 
 
-
+app.use(cors);
 app.use(express.json()); 
 app.use(cookieParser());
 

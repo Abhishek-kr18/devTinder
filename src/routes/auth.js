@@ -1,6 +1,5 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { validateSignUpData } from "../utils/validations.js";
 import User from "../models/user.js";
 
@@ -21,8 +20,13 @@ authRouter.post("/signup", async (req, res) => {
       password: passwordHash,
     });
 
-    await user.save();
-    res.send("user added successfully!");
+    const saveUser = await user.save();
+    const token = await saveUser.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+    });
+    res.json({message: "user added successfully!",data:saveUser});
   } catch (err) {
     res.status(400).send("Error saving the user: " + err.message);
   }
@@ -43,11 +47,23 @@ authRouter.post("/login", async (req, res) => {
       throw new Error("invalid password!");
     }
 
-    const token = jwt.sign({ _id: user._id }, "Dev@Tinder$284");
-    res.cookie("token", token, { httpOnly: true, secure: false });
-    res.json({ message: "login successful!!!", token });
+    const token = await user.getJWT();
+
+    res.cookie("token", token, {
+      expires: new Date(Date.now() + 8 * 3600000),
+      httpOnly: true,
+      secure: false,
+    });
+
+    const userData = user.toObject();
+    delete userData.password;
+
+    res.send({
+      message: "Login successful",
+      user: userData,
+    });
   } catch (err) {
-    res.status(400).send("something went wrong: " + err.message);
+    res.status(400).send("Error: " + err.message);
   }
 });
 

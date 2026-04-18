@@ -1,5 +1,5 @@
 import express from "express";
-import auth from "../middlewares/auth.js";
+import { userAuth } from "../middlewares/auth.js";
 import ConnectionRequest from "../models/connectionRequest.js";
 import User from "../models/user.js";
 
@@ -7,7 +7,7 @@ const requestRouter = express.Router();
 
 requestRouter.post(
   "/request/sent/:status/:toUserId",
-   auth.userAuth, 
+   userAuth, 
    async (req, res, next) => {
     try{
       const fromUserId = req.user._id;
@@ -56,8 +56,8 @@ requestRouter.post(
 );
 
 requestRouter.post(
-  "/request/review/status/:requestId",
-   auth.userAuth,
+  "/request/review/:status/:requestId",
+   userAuth,
     async (req, res, next) => {
     try{
     const loggedInUser = req.user;
@@ -67,7 +67,7 @@ requestRouter.post(
     if (!allowedStatus.includes(status)) {
       return res.status(400).json({ message: "status not allowed" });
     }
-    const connectionRequest = await ConnectionRequest.findById({
+     const connectionRequest = await ConnectionRequest.findOne({
        _id: requestId,
        toUserId: loggedInUser._id,
        status: "interested",

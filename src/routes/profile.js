@@ -5,6 +5,25 @@ import { validateEditProfileData } from "../utils/validations.js";
 
 const profileRouter = express.Router();
 
+const updateProfileHandler = async (req, res) => {
+  try {
+    if (!validateEditProfileData(req)) {
+      throw new Error("invalid edit fields!");
+    }
+
+    const loggedInUser = req.user;
+
+    Object.keys(req.body).forEach((key) => {
+      loggedInUser[key] = req.body[key];
+    });
+
+    await loggedInUser.save();
+    res.send(`${loggedInUser.firstName} profile updated successfully!!!`);
+  } catch (err) {
+    res.status(400).send("Error: " + err.message);
+  }
+};
+
 profileRouter.get("/profile", userAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -14,24 +33,7 @@ profileRouter.get("/profile", userAuth, async (req, res) => {
   }
 });
 
-profileRouter.patch("/profile", userAuth, async (req, res) => {
-    try{
-        if(!validateEditProfileData(req)){
-            throw new Error("invalid edit fields!");
-        }
-        const loggedInUser = req.user;
-        console.log(loggedInUser);
-
-        Object.keys(req.body).forEach((key)=>{
-            (loggedInUser[key] = req.body[key]);
-        });
-        await loggedInUser.save();
-         console.log(loggedInUser);
-         res.send(`${loggedInUser.firstName} profile updated successfully!!!`);
-    }catch(err){
-        res.status(400).send("Error: "+err.message);
-        
-    }
-});
+profileRouter.patch("/profile", userAuth, updateProfileHandler);
+profileRouter.patch("/profile/edit", userAuth, updateProfileHandler);
 
 export default profileRouter;

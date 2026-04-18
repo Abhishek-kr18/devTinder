@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { userAuth } from "../middlewares/auth.js";
-import ConnectionRequest from "../models/ConnectionRequest.js";
+import ConnectionRequest from "../models/connectionRequest.js";
+import User from "../models/user.js";
 
 const userRouter = Router();
 const USER_SAFE_DATA = ["firstName", "lastName", "photoUrl", "about","skills"];
@@ -43,16 +44,23 @@ userRouter.get("/users/connection", userAuth,async (req, res) => {
             "toUserId",
             USER_SAFE_DATA
         );
-        const data =connectionRequests.map((row)=>{
-            if(row.fromUserId._id.toString()===loggedInUser._id){
-               return row.fromUserId;
-            }
-            return row.toUserId;
+        const data = connectionRequests.map((row) => {
+            const connectedUser = row.fromUserId._id.toString() === loggedInUser._id.toString()
+                ? row.toUserId
+                : row.fromUserId;
+
+            return {
+                userId: connectedUser._id,
+                firstName: connectedUser.firstName,
+                lastName: connectedUser.lastName,
+                name: `${connectedUser.firstName} ${connectedUser.lastName}`.trim(),
+                photoUrl: connectedUser.photoUrl,
+            };
         });
 
-        res.json({connectionRequests});
+        res.json({ data });
     }catch(err){
-        res.statusCode(400).json("ERROR: " + err.message);
+        res.status(400).json("ERROR: " + err.message);
     }
 });
 
@@ -60,9 +68,9 @@ userRouter.get("/feed", userAuth,async (req, res) => {
         try{
                 const loggedInUser = req.user;
 
-                const page=parseInt(req.params.page) || 1;
-                const limit=parseInt(req.params.limit) || 10;
-                limit =limit > 50 ? 50 : limit;
+        const page = parseInt(req.query.page, 10) || 1;
+        let limit = parseInt(req.query.limit, 10) || 10;
+        limit = limit > 50 ? 50 : limit;
                  const skip=(page-1)*limit;
 
                 const connectionRequests = await ConnectionRequest.find({
@@ -71,11 +79,10 @@ userRouter.get("/feed", userAuth,async (req, res) => {
                 }).select("fromUserId toUserId");
 
                 const hideUsersFromFeed = new Set();
-                connectionRequests.forEach(req=>{
-                    hideUsersFromFeed.add(req.fromUserId);
-                    hideUsersFromFeed.add(req.toUserId);
+                connectionRequests.forEach((request)=>{
+                    hideUsersFromFeed.add(request.fromUserId);
+                    hideUsersFromFeed.add(request.toUserId);
                 });
-                console.log(hideUsersFromFeed);
 
                 const users= await User.find({
                     $and:[
